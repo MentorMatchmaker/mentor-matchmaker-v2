@@ -93,30 +93,6 @@
         </main>
     </div>
 
-    <div id="sandwichModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-        <div class="bg-white dark:bg-gray-800 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div class="p-6">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-xl font-bold text-gray-900 dark:text-white">Your Challenge Sandwich</h2>
-                    <button onclick="closeSandwichModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>
-                    </button>
-                </div>
-                <div id="sandwichContent" class="space-y-6"></div>
-                <div class="mt-6 flex justify-end space-x-3">
-                    <button onclick="copySandwich()" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors">
-                        Copy to Clipboard
-                    </button>
-                    <button onclick="downloadSandwich()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
-                        Download
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <script>
         let conversationState = {
             phase: 'welcome',
@@ -324,28 +300,33 @@ Remember: Always offer the next steps menu after completing the Challenge Sandwi
         }
 
         function checkForSandwichCompletion(content) {
-            if (content.includes('Challenge Sandwich') && content.includes('complete')) {
-                extractSandwichFromContent(content);
-            }
+            if (content.includes('Challenge Sandwich is complete') || content.includes('Your Challenge Sandwich is complete')) {
+        // Add copy button after the message
+        setTimeout(() => {
+            addCopyButton();
+        }, 500);
         }
 
-        function extractSandwichFromContent(content) {
-            const lines = content.split('\n');
-            let challenge = '', gameplan = '', background = '';
-            let currentSection = '';
-
-            for (let line of lines) {
-                if (line.includes('Challenge:') || line.includes('60-Day Challenge:')) {
-                    currentSection = 'challenge';
-                } else if (line.includes('Game Plan:') || line.includes('Secret Sauce:')) {
-                    currentSection = 'gameplan';
-                } else if (line.includes('Background:') || line.includes('Bread:')) {
-                    currentSection = 'background';
-                } else if (currentSection && line.trim() && !line.includes('**')) {
-                    if (currentSection === 'challenge') challenge += line.trim() + '\n';
-                    else if (currentSection === 'gameplan') gameplan += line.trim() + '\n';
-                    else if (currentSection === 'background') background += line.trim() + '\n';
-                }
+        function addCopyButton() {
+    const chatMessages = document.getElementById('chatMessages');
+    const buttonDiv = document.createElement('div');
+    buttonDiv.className = 'chat-message flex justify-center mb-4';
+    buttonDiv.innerHTML = `
+        <div class="flex space-x-3">
+            <button onclick="copyLastSandwich()" class="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors font-medium">
+                📋 Copy Challenge Sandwich
+            </button>
+            <button onclick="shareWhatsApp()" class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium">
+                📱 Share via WhatsApp
+            </button>
+            <button onclick="downloadSandwich()" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
+                💾 Download
+            </button>
+        </div>
+    `;
+    chatMessages.appendChild(buttonDiv);
+    scrollToBottom();
+}
             }
 
             if (challenge && gameplan && background) {
@@ -358,7 +339,7 @@ Remember: Always offer the next steps menu after completing the Challenge Sandwi
             }
         }
 
-        function showSandwichModal() {
+        function showSandwichModal() { /* Not used anymore */ }
             const modal = document.getElementById('sandwichModal');
             const content = document.getElementById('sandwichContent');
             const sandwich = conversationState.completeSandwich;
@@ -484,6 +465,44 @@ MentorMatchmaker.com`;
             div.textContent = text;
             return div.innerHTML;
         }
+        function copyLastSandwich() {
+    const messages = document.querySelectorAll('.chat-message .markdown-content');
+    const lastMessage = messages[messages.length - 1];
+    if (lastMessage) {
+        const text = lastMessage.textContent;
+        navigator.clipboard.writeText(text).then(() => {
+            showTemporaryMessage(event.target, 'Copied!', 'bg-green-600');
+        });
+    }
+}
+
+function shareWhatsApp() {
+    const messages = document.querySelectorAll('.chat-message .markdown-content');
+    const lastMessage = messages[messages.length - 1];
+    if (lastMessage) {
+        const text = encodeURIComponent(lastMessage.textContent);
+        const whatsappUrl = `https://wa.me/?text=${text}`;
+        window.open(whatsappUrl, '_blank');
+    }
+}
+
+function downloadSandwich() {
+    const messages = document.querySelectorAll('.chat-message .markdown-content');
+    const lastMessage = messages[messages.length - 1];
+    if (lastMessage) {
+        const content = lastMessage.textContent;
+        const blob = new Blob([content], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'my-challenge-sandwich.txt';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showTemporaryMessage(event.target, 'Downloaded!', 'bg-green-600');
+    }
+}
 
         document.addEventListener('DOMContentLoaded', initializeApp);
     </script>
