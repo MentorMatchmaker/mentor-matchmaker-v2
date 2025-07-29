@@ -96,8 +96,7 @@
     <script>
         let conversationState = {
             phase: 'welcome',
-            conversationHistory: [],
-            completeSandwich: null
+            conversationHistory: []
         };
         let isWaitingForResponse = false;
 
@@ -301,136 +300,77 @@ Remember: Always offer the next steps menu after completing the Challenge Sandwi
 
         function checkForSandwichCompletion(content) {
             if (content.includes('Challenge Sandwich is complete') || content.includes('Your Challenge Sandwich is complete')) {
-        // Add copy button after the message
-        setTimeout(() => {
-            addCopyButton();
-        }, 500);
-        }
-
-        function addCopyButton() {
-    const chatMessages = document.getElementById('chatMessages');
-    const buttonDiv = document.createElement('div');
-    buttonDiv.className = 'chat-message flex justify-center mb-4';
-    buttonDiv.innerHTML = `
-        <div class="flex space-x-3">
-            <button onclick="copyLastSandwich()" class="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors font-medium">
-                📋 Copy Challenge Sandwich
-            </button>
-            <button onclick="shareWhatsApp()" class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium">
-                📱 Share via WhatsApp
-            </button>
-            <button onclick="downloadSandwich()" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
-                💾 Download
-            </button>
-        </div>
-    `;
-    chatMessages.appendChild(buttonDiv);
-    scrollToBottom();
-}
-            }
-
-            if (challenge && gameplan && background) {
-                conversationState.completeSandwich = {
-                    challenge: challenge.trim(),
-                    gameplan: gameplan.trim(),
-                    background: background.trim()
-                };
-                setTimeout(() => showSandwichModal(), 1000);
+                setTimeout(() => {
+                    addCopyButtons();
+                }, 500);
             }
         }
 
-        function showSandwichModal() { /* Not used anymore */ }
-            const modal = document.getElementById('sandwichModal');
-            const content = document.getElementById('sandwichContent');
-            const sandwich = conversationState.completeSandwich;
-
-            if (!sandwich) return;
-
-            content.innerHTML = `
-                <div class="space-y-6">
-                    <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
-                        <h3 class="font-semibold text-blue-900 dark:text-blue-100 mb-2">🥩 The Meat: Your 60-Day Challenge</h3>
-                        <p class="text-blue-800 dark:text-blue-200">${escapeHtml(sandwich.challenge)}</p>
-                    </div>
-                    <div class="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
-                        <h3 class="font-semibold text-green-900 dark:text-green-100 mb-2">🥄 The Secret Sauce: Your Game Plan</h3>
-                        <div class="text-green-800 dark:text-green-200 whitespace-pre-wrap">${escapeHtml(sandwich.gameplan)}</div>
-                    </div>
-                    <div class="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg">
-                        <h3 class="font-semibold text-purple-900 dark:text-purple-100 mb-2">🍞 The Bread: Your Background</h3>
-                        <div class="text-purple-800 dark:text-purple-200 whitespace-pre-wrap">${escapeHtml(sandwich.background)}</div>
-                    </div>
-                </div>`;
-
-            modal.classList.remove('hidden');
+        function addCopyButtons() {
+            const chatMessages = document.getElementById('chatMessages');
+            const buttonDiv = document.createElement('div');
+            buttonDiv.className = 'chat-message flex justify-center mb-4';
+            buttonDiv.innerHTML = `
+                <div class="flex flex-wrap justify-center gap-3">
+                    <button onclick="copyLastSandwich()" class="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors font-medium">
+                        📋 Copy Challenge Sandwich
+                    </button>
+                    <button onclick="shareWhatsApp()" class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium">
+                        📱 Share via WhatsApp
+                    </button>
+                    <button onclick="downloadSandwich()" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
+                        💾 Download
+                    </button>
+                </div>
+            `;
+            chatMessages.appendChild(buttonDiv);
+            scrollToBottom();
         }
 
-        function closeSandwichModal() {
-            document.getElementById('sandwichModal').classList.add('hidden');
+        function copyLastSandwich() {
+            const messages = document.querySelectorAll('.chat-message .markdown-content');
+            const lastMessage = messages[messages.length - 1];
+            if (lastMessage) {
+                const text = lastMessage.textContent;
+                navigator.clipboard.writeText(text).then(() => {
+                    showTemporaryMessage(event.target, 'Copied!', 'bg-green-600');
+                });
+            }
         }
 
-        function copySandwich() {
-            const sandwich = conversationState.completeSandwich;
-            if (!sandwich) return;
-
-            const text = `MY CHALLENGE SANDWICH
-
-🥩 The Meat: 60-Day Challenge
-${sandwich.challenge}
-
-🥄 The Secret Sauce: Game Plan
-${sandwich.gameplan}
-
-🍞 The Bread: Background
-${sandwich.background}
-
----
-Created with the Mentor Matchmaker Challenge Sandwich Framework
-By Brian Leor Frankel - "How to Find a Mentor"`;
-
-            navigator.clipboard.writeText(text).then(() => {
-                showTemporaryMessage(event.target, 'Copied!', 'bg-green-600');
-            });
+        function shareWhatsApp() {
+            const messages = document.querySelectorAll('.chat-message .markdown-content');
+            const lastMessage = messages[messages.length - 1];
+            if (lastMessage) {
+                const text = encodeURIComponent(lastMessage.textContent);
+                const whatsappUrl = `https://wa.me/?text=${text}`;
+                window.open(whatsappUrl, '_blank');
+            }
         }
 
         function downloadSandwich() {
-            const sandwich = conversationState.completeSandwich;
-            if (!sandwich) return;
-
-            const content = `MY CHALLENGE SANDWICH
-
-🥩 The Meat: 60-Day Challenge
-${sandwich.challenge}
-
-🥄 The Secret Sauce: Game Plan  
-${sandwich.gameplan}
-
-🍞 The Bread: Background
-${sandwich.background}
-
----
-Created with the Mentor Matchmaker Challenge Sandwich Framework
-By Brian Leor Frankel - "How to Find a Mentor"
-MentorMatchmaker.com`;
-
-            const blob = new Blob([content], { type: 'text/plain' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'my-challenge-sandwich.txt';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-
-            showTemporaryMessage(event.target, 'Downloaded!', 'bg-green-600');
+            const messages = document.querySelectorAll('.chat-message .markdown-content');
+            const lastMessage = messages[messages.length - 1];
+            if (lastMessage) {
+                const content = lastMessage.textContent;
+                const blob = new Blob([content], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'my-challenge-sandwich.txt';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                showTemporaryMessage(event.target, 'Downloaded!', 'bg-green-600');
+            }
         }
 
         function showTemporaryMessage(button, message, bgClass) {
             const originalText = button.textContent;
             const originalClass = button.className;
             button.textContent = message;
-            button.className = button.className.replace('bg-primary', bgClass).replace('bg-green-600', bgClass);
+            button.className = button.className.replace(/bg-\w+-\d+/, bgClass);
             setTimeout(() => {
                 button.textContent = originalText;
                 button.className = originalClass;
@@ -446,7 +386,7 @@ MentorMatchmaker.com`;
         }
 
         function resetSession() {
-            conversationState = { phase: 'welcome', conversationHistory: [], completeSandwich: null };
+            conversationState = { phase: 'welcome', conversationHistory: [] };
             document.getElementById('chatMessages').innerHTML = '';
             document.getElementById('userInput').value = '';
             document.getElementById('charCount').textContent = '0';
@@ -465,44 +405,6 @@ MentorMatchmaker.com`;
             div.textContent = text;
             return div.innerHTML;
         }
-        function copyLastSandwich() {
-    const messages = document.querySelectorAll('.chat-message .markdown-content');
-    const lastMessage = messages[messages.length - 1];
-    if (lastMessage) {
-        const text = lastMessage.textContent;
-        navigator.clipboard.writeText(text).then(() => {
-            showTemporaryMessage(event.target, 'Copied!', 'bg-green-600');
-        });
-    }
-}
-
-function shareWhatsApp() {
-    const messages = document.querySelectorAll('.chat-message .markdown-content');
-    const lastMessage = messages[messages.length - 1];
-    if (lastMessage) {
-        const text = encodeURIComponent(lastMessage.textContent);
-        const whatsappUrl = `https://wa.me/?text=${text}`;
-        window.open(whatsappUrl, '_blank');
-    }
-}
-
-function downloadSandwich() {
-    const messages = document.querySelectorAll('.chat-message .markdown-content');
-    const lastMessage = messages[messages.length - 1];
-    if (lastMessage) {
-        const content = lastMessage.textContent;
-        const blob = new Blob([content], { type: 'text/plain' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'my-challenge-sandwich.txt';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        showTemporaryMessage(event.target, 'Downloaded!', 'bg-green-600');
-    }
-}
 
         document.addEventListener('DOMContentLoaded', initializeApp);
     </script>
